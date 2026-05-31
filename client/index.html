@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>睡眠质量声音记录仪</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div>
+                    <h1>🌙 睡眠质量声音记录仪</h1>
+                    <p class="subtitle">守护您的每一夜好眠</p>
+                </div>
+                <div class="user-area" id="user-area">
+                    <button id="login-btn" class="btn btn-secondary btn-sm">登录</button>
+                    <button id="register-btn" class="btn btn-secondary btn-sm" style="display: none;">注册</button>
+                    <div id="user-info" style="display: none;">
+                        <span id="user-nickname"></span>
+                        <button id="logout-btn" class="btn btn-secondary btn-sm">退出</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="monitor">睡眠监测</button>
+            <button class="tab-btn" data-tab="noise">噪音分析</button>
+            <button class="tab-btn" data-tab="whitenoise">白噪音</button>
+            <button class="tab-btn" data-tab="family">家庭共享</button>
+            <button class="tab-btn" data-tab="history">历史记录</button>
+        </nav>
+
+        <main class="content-area">
+            <div id="auth-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="auth-title">登录</h3>
+                        <button class="close-btn" id="close-auth">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" id="auth-username" placeholder="请输入用户名">
+                        </div>
+                        <div class="form-group" id="nickname-group" style="display: none;">
+                            <label>昵称（可选）</label>
+                            <input type="text" id="auth-nickname" placeholder="请输入昵称">
+                        </div>
+                        <div class="form-group">
+                            <label>密码</label>
+                            <input type="password" id="auth-password" placeholder="请输入密码">
+                        </div>
+                        <div class="form-group" id="confirm-group" style="display: none;">
+                            <label>确认密码</label>
+                            <input type="password" id="auth-confirm" placeholder="请再次输入密码">
+                        </div>
+                        <button id="auth-submit" class="btn btn-primary btn-full">登录</button>
+                        <p class="auth-switch" id="auth-switch">还没有账号？点击注册</p>
+                    </div>
+                </div>
+            </div>
+
+            <section id="monitor-tab" class="tab-content active">
+                <div class="monitor-section">
+                    <div class="status-card">
+                        <div class="status-indicator" id="status-indicator"></div>
+                        <h2 id="status-text">准备就绪</h2>
+                        <p id="status-detail">点击下方按钮开始夜间监测</p>
+                    </div>
+
+                    <div class="timer-section" id="timer-section" style="display: none;">
+                        <div class="timer-display">
+                            <span id="timer-hours">00</span>:
+                            <span id="timer-minutes">00</span>:
+                            <span id="timer-seconds">00</span>
+                        </div>
+                        <p class="timer-label">监测时长</p>
+                    </div>
+
+                    <div class="stats-grid" id="stats-grid" style="display: none;">
+                        <div class="stat-item">
+                            <span class="stat-value" id="snore-count">0</span>
+                            <span class="stat-label">鼾声次数</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="talk-count">0</span>
+                            <span class="stat-label">梦话次数</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="recordings-count">0</span>
+                            <span class="stat-label">录音片段</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="noise-level">--</span>
+                            <span class="stat-label">环境噪音</span>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button id="start-btn" class="btn btn-primary btn-lg">
+                            <span>🌙</span> 开始睡眠监测
+                        </button>
+                        <button id="stop-btn" class="btn btn-danger btn-lg" style="display: none;">
+                            <span>⏹️</span> 结束监测
+                        </button>
+                    </div>
+
+                    <div class="visualizer-section" id="visualizer-section" style="display: none;">
+                        <canvas id="audio-visualizer"></canvas>
+                        <p class="visualizer-label">实时音频波形</p>
+                    </div>
+                </div>
+
+                <div class="result-section" id="result-section" style="display: none;">
+                    <div class="score-card">
+                        <div class="score-circle">
+                            <span class="score-value" id="final-score">0</span>
+                            <span class="score-label">睡眠评分</span>
+                        </div>
+                        <div class="score-details">
+                            <div class="score-item">
+                                <span class="score-item-label">总时长</span>
+                                <span class="score-item-value" id="result-duration">0 小时 0 分钟</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-item-label">鼾声次数</span>
+                                <span class="score-item-value" id="result-snore">0 次</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-item-label">梦话次数</span>
+                                <span class="score-item-value" id="result-talk">0 次</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-item-label">环境噪音</span>
+                                <span class="score-item-value" id="result-noise">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="noise-analysis-card" id="noise-analysis-card" style="display: none;">
+                        <h3>🔊 噪音分析建议</h3>
+                        <div id="noise-suggestions"></div>
+                    </div>
+
+                    <div class="timeline-section">
+                        <h3>睡眠声音时间线</h3>
+                        <div class="timeline-container" id="timeline-container"></div>
+                    </div>
+
+                    <div class="recordings-section" id="recordings-section" style="display: none;">
+                        <h3>录音片段</h3>
+                        <div class="recordings-list" id="recordings-list"></div>
+                    </div>
+
+                    <div class="result-actions">
+                        <button id="save-btn" class="btn btn-primary">保存记录</button>
+                        <button id="reset-btn" class="btn btn-secondary">重新开始</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="noise-tab" class="tab-content">
+                <div class="noise-analysis-section">
+                    <div class="noise-header">
+                        <h2>🔊 睡眠环境噪音分析</h2>
+                        <button id="refresh-noise" class="btn btn-secondary">刷新</button>
+                    </div>
+                    
+                    <div class="noise-stats">
+                        <div class="noise-stat-card">
+                            <span class="noise-icon">📊</span>
+                            <div>
+                                <span class="noise-value" id="avg-noise-level">--</span>
+                                <span class="noise-label">平均噪音水平</span>
+                            </div>
+                        </div>
+                        <div class="noise-stat-card">
+                            <span class="noise-icon">🎚️</span>
+                            <div>
+                                <span class="noise-value" id="noise-status">--</span>
+                                <span class="noise-label">环境评级</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="noise-suggestions-section">
+                        <h3>💡 改善建议</h3>
+                        <div id="noise-suggestions-list">
+                            <p class="empty-message">暂无噪音分析数据，请先完成至少一次睡眠监测</p>
+                        </div>
+                    </div>
+
+                    <div class="noise-history-section">
+                        <h3>📈 最近7天噪音趋势</h3>
+                        <div id="noise-history-list">
+                            <p class="empty-message">暂无历史数据</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="whitenoise-tab" class="tab-content">
+                <div class="whitenoise-section">
+                    <div class="whitenoise-header">
+                        <h2>🎵 睡前白噪音</h2>
+                        <p class="section-subtitle">选择一个声音，帮助您更快入眠</p>
+                    </div>
+
+                    <div class="whitenoise-controls" id="whitenoise-controls">
+                        <div class="volume-control">
+                            <label>音量</label>
+                            <input type="range" id="noise-volume" min="0" max="1" step="0.1" value="0.5">
+                            <span id="volume-value">50%</span>
+                        </div>
+                    </div>
+
+                    <div class="whitenoise-grid" id="whitenoise-grid">
+                        <p class="empty-message">加载中...</p>
+                    </div>
+
+                    <div class="whitenoise-now-playing" id="now-playing" style="display: none;">
+                        <div class="now-playing-info">
+                            <span id="playing-icon">🎵</span>
+                            <span id="playing-name">正在播放</span>
+                        </div>
+                        <button id="stop-noise" class="btn btn-danger btn-sm">停止</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="family-tab" class="tab-content">
+                <div class="family-section">
+                    <div class="family-header">
+                        <h2>👨‍👩‍👧‍👦 家庭共享</h2>
+                        <button id="refresh-family" class="btn btn-secondary">刷新</button>
+                    </div>
+
+                    <div id="no-family-section" style="display: none;">
+                        <div class="no-family-card">
+                            <p>您还没有加入任何家庭</p>
+                            <div class="family-actions">
+                                <button id="create-family-btn" class="btn btn-primary">创建家庭</button>
+                                <button id="join-family-btn" class="btn btn-secondary">加入家庭</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="family-content" style="display: none;">
+                        <div class="family-info">
+                            <h3 id="family-name">我的家庭</h3>
+                            <p id="family-role"></p>
+                            <div class="family-manage">
+                                <button id="generate-invite-btn" class="btn btn-secondary" style="display: none;">生成邀请码</button>
+                            </div>
+                        </div>
+
+                        <div id="invite-code-section" class="invite-section" style="display: none;">
+                            <h4>邀请码</h4>
+                            <div class="invite-code-display">
+                                <span id="invite-code">--</span>
+                                <button id="copy-code" class="btn btn-secondary btn-sm">复制</button>
+                            </div>
+                            <p class="invite-expiry" id="invite-expiry"></p>
+                        </div>
+
+                        <div class="family-members-section">
+                            <h3>家庭成员</h3>
+                            <div id="family-members-list"></div>
+                        </div>
+
+                        <div class="family-summary-section">
+                            <h3>📊 家人睡眠摘要</h3>
+                            <div id="family-summary-list">
+                                <p class="empty-message">暂无数据</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="history-tab" class="tab-content">
+                <div class="history-header">
+                    <h2>📊 历史睡眠记录</h2>
+                    <button id="refresh-history" class="btn btn-secondary">刷新</button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <p class="empty-message">暂无历史记录</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
